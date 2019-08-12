@@ -1,0 +1,30 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: camel-proxy
+  labels:
+    app: camel-proxy
+spec:
+  terminationGracePeriodSeconds: 0
+  containers:
+  - name: server
+    image: eloycoto/camel-netty-proxy
+    imagePullPolicy: IfNotPresent
+    ports:
+    - name: dns
+      port: 9090
+      containerPort: 9090
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: camel-proxy
+spec:
+  selector:
+    app: camel-proxy
+  clusterIP: 172.30.136.15
+  ports:
+  - port: 9090
+    protocol: TCP
+    targetPort: 9090

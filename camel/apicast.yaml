@@ -1,0 +1,135 @@
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: apicast-config
+data:
+  BACKEND_ENDPOINT_OVERRIDE: http://172.30.136.11/
+  THREESCALE_CONFIG_FILE: /gateway/test.json
+  test.json: |-
+    {
+      "services": [
+        {
+          "id": 200,
+          "backend_version":  1,
+          "backend_authentication_type": "service_token",
+          "backend_authentication_value": "token-value",
+          "proxy": {
+            "hosts": [
+              "one"
+            ],
+            "api_backend": "http://api-endpoint.camelproxy.svc.cluster.local",
+            "proxy_rules": [
+              {
+                "pattern": "/",
+                "http_method": "GET",
+                "metric_system_name": "hits",
+                "delta": 1
+              }
+            ],
+            "policy_chain": [
+              {
+                "name": "apicast.policy.apicast"
+              },
+              {
+                "name": "apicast.policy.http_proxy",
+                "configuration": {
+                  "http_proxy": "http://camel-proxy.camelproxy.svc.cluster.local:9090"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: apicast-service
+spec:
+  selector:
+    app: apicast
+  clusterIP: 172.30.136.10
+  ports:
+  - port: 8080
+    protocol: TCP
+    targetPort: 8080
+---
+kind: "DeploymentConfig"
+apiVersion: "v1"
+metadata:
+  name: "apicast"
+spec:
+  template:
+    metadata:
+      labels:
+        name: "apicast"
+        app: apicast
+    spec:
+      terminationGracePeriodSeconds: 0
+      containers:
+        - name: gateway
+          image: quay.io/3scale/apicast:master
+          # image: eloycoto/apicast
+          imagePullPolicy: Always
+          ports:
+            - name: proxy
+              port: 8080
+              protocol: TCP
+              containerPort: 8080
+            - name: management
+              port: 8090
+              protocol: TCP
+              containerPort: 8090
+          env:
+            - name: BACKEND_ENDPOINT_OVERRIDE
+              valueFrom:
+                configMapKeyRef:
+                  name: apicast-config
+                  key: BACKEND_ENDPOINT_OVERRIDE
+            - name: THREESCALE_CONFIG_FILE
+              valueFrom:
+                configMapKeyRef:
+                  name: apicast-config
+                  key: THREESCALE_CONFIG_FILE
+          volumeMounts:
+            - name: config-volume
+              mountPath: /gateway
+      volumes:
+        - name: config-volume
+          configMap:
+            name: apicast-config
+  replicas: 1
+  strategy:
+    type: "Rolling"
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: apicast-api-server
+  labels:
+    app: apicast-api-server
+spec:
+  terminationGracePeriodSeconds: 0
+  containers:
+  - name: server
+    image: eexit/mirror-http-server
+    imagePullPolicy: IfNotPresent
+    ports:
+    - name: dns
+      port: 80
+      containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: server-service
+spec:
+  selector:
+    app: apicast-api-server
+  clusterIP: 172.30.136.11
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 80
