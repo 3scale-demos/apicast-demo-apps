@@ -1,0 +1,74 @@
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: nginx-config
+data:
+  nginx.conf: |-
+    pid       /tmp/nginx.pid;
+    worker_processes auto;
+    events { }
+
+    http {
+      server_names_hash_bucket_size 128;
+      proxy_cache_path /tmp/cache levels=1:2 keys_zone=my_cache:10m max_size=10g 
+         inactive=60m use_temp_path=off;
+
+      access_log /dev/stdout;
+      error_log /dev/stdout;
+
+
+      server {
+        listen       80;
+        server_name  _;
+        proxy_max_temp_file_size 0;
+        location / {
+          proxy_cache my_cache;
+          proxy_ignore_headers Cache-Control;
+          proxy_cache_valid any 1m;
+
+          proxy_pass http://$http_host;
+
+          proxy_set_header host $http_host;
+          proxy_set_header eloy $http_host;
+          add_header X-Cache-Status $upstream_cache_status;
+        }
+      }
+    }
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-proxy
+  labels:
+    app: nginx-proxy
+spec:
+  terminationGracePeriodSeconds: 0
+  containers:
+  - name: server
+    image: nginx
+    imagePullPolicy: IfNotPresent
+    ports:
+    - name: http
+      port: 80
+      containerPort: 80
+    volumeMounts:
+      - name: config-volume
+        mountPath: /etc/nginx/
+  volumes:
+    - name: config-volume
+      configMap:
+        name: nginx-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-proxy
+spec:
+  selector:
+    app: nginx-proxy
+  clusterIP: 172.30.136.15
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 80
