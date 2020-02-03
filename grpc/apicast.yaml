@@ -1,0 +1,251 @@
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: apicast-config
+data:
+  BACKEND_ENDPOINT_OVERRIDE: http://server-service/
+  APICAST_HTTPS_PORT: "8043"
+  APICAST_LOG_LEVEL: "debug"
+  THREESCALE_CONFIG_FILE: /gateway/test.json
+  test.json: |-
+    {
+      "services": [
+        {
+          "id": 200,
+          "backend_version":  1,
+          "backend_authentication_type": "service_token",
+          "backend_authentication_value": "token-value",
+          "proxy": {
+            "credentials_location": "headers",
+            "hosts": [
+              "apicast-service"
+            ],
+            "api_backend": "https://grpc-service:443",
+            "proxy_rules": [
+              {
+                "pattern": "/",
+                "http_method": "GET",
+                "metric_system_name": "hits",
+                "delta": 1
+              },
+              {
+                "pattern": "/",
+                "http_method": "POST",
+                "metric_system_name": "hits",
+                "delta": 1
+              }
+            ],
+            "policy_chain": [
+              {
+                "name": "apicast.policy.tls",
+                "configuration": {
+                  "certificates": [
+                    {
+                      "certificate_path": "/gateway/apicast-service.crt",
+                      "certificate_key_path": "/gateway/apicast-service.key"
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "apicast.policy.grpc"
+              },
+              {
+                "name": "apicast.policy.apicast"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  apicast-service.crt: |-
+    -----BEGIN CERTIFICATE-----
+    MIID4zCCAssCFBayjzVfDvx4X8huh8O/q+jQO/bQMA0GCSqGSIb3DQEBCwUAMEIx
+    CzAJBgNVBAYTAlhYMRUwEwYDVQQHDAxEZWZhdWx0IENpdHkxHDAaBgNVBAoME0Rl
+    ZmF1bHQgQ29tcGFueSBMdGQwHhcNMjAwMTMxMjEyNDIzWhcNMzAwMTI4MjEyNDIz
+    WjAaMRgwFgYDVQQDDA9hcGljYXN0LXNlcnZpY2UwggIiMA0GCSqGSIb3DQEBAQUA
+    A4ICDwAwggIKAoICAQCfE06dbICC0G5vu+JWN3qwnAS9WrVJmZoILuTDBTsbm3td
+    YzFfWcoXa3BCT8+2UfGtEFaxlPxJMsA/Hht7scN6mmlPpNn1CF65XkKASzpOOG0x
+    xL4leT+0E0SoVeXjA6Xe7JlPvJhqSRLW1calyoBWpannwSYNV5SaoxbaLBXnFTxE
+    rWqyCCYEF5XfKNfTgksXeFPC7zn+/LJymVLg+rGCKhiocYWvvYnKOcn681ayc7yO
+    SVgLBT74p5aDuDu5Jdq9YDd9YFaYreZTXSy4jrHMozV1eHczbGME9VKThb/45ypV
+    ON1bbe1wGt2cv/bROvpqFuTBNnJHq4iIXSRMjIzYdgs1yuiAWfQKyE7xQZ/EWKZi
+    LvM4fsnZw+Ss3sG4v5FYH0e6sE+gk1AuauO4wHVsQtmL9I4JPdrwFUR7MEWhCyHE
+    aAaxADsH4dpMVtMUyxJLT34FqDkFPES4eWktz7kUOnmU93NmQBzUtgATFZzmTXD0
+    SANtm0Jhq5KmdoLlMhzROc8sjpix6TXCzNUVLjc4B72W5RLmlWWxrXJ7x6/uCWK4
+    +ZdJGZfKtZkrkHUi7r2PbDf+OCCOgeONLLwhzCkS0o+a285vhOy9DldKMyxo1AMn
+    b5hrb6Wylr3fummAzU4dzEFILaAXyYaVCgRabc2kw6gzQQVqo7+tBGAhZ1DWbQID
+    AQABMA0GCSqGSIb3DQEBCwUAA4IBAQAVEjv290CNVrG5wq3SO9cymLpvMmkrp75W
+    BqsJGmjGg25uBhtPCPpLIbBF9x+ixpQjI4GSxJy4IhpNar7cE8sD5gk2XYFjum2k
+    ryt9JaumCIJI0IUZhVIqEXiwukkcWMebxELIxxK6u/I5N5foB3gjn3hUt6BIiGQj
+    GDkhGHybOIvFe5eMvsivCJlkA7nh8QX4Q0qhf9xpKI4VRTzzELVC73I1QFLA8RYv
+    XUd2Ojko/3vZf5VZSIUwKX3BXRoTPytSV1lQfoYIzEDqGbNlkaU7X7SUXFSiPdgm
+    gKDyGdSnWO/P1j5PfJSdjO05Yd8SV75rYOxZH6NkqzDUt8i+BEHo
+    -----END CERTIFICATE-----
+
+  apicast-service.key: |-
+    -----BEGIN PRIVATE KEY-----
+    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
+    REUGUeBfJjfSRh49Mg3XQiwl+u6vXFo=
+    -----END PRIVATE KEY-----
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: apicast-service
+spec:
+  selector:
+    app: apicast
+  ports:
+  - port: 8080
+    name: plaintext
+    protocol: TCP
+    targetPort: 8080
+  - port: 8043
+    name: tls
+    protocol: TCP
+    targetPort: 8043
+---
+kind: "DeploymentConfig"
+apiVersion: "v1"
+metadata:
+  name: "apicast"
+spec:
+  template:
+    metadata:
+      labels:
+        name: "apicast"
+        app: apicast
+    spec:
+      terminationGracePeriodSeconds: 0
+      containers:
+        - name: gateway
+          image: quay.io/3scale/apicast:master
+          imagePullPolicy: Always
+          ports:
+            - name: proxy
+              port: 8080
+              protocol: TCP
+              containerPort: 8080
+            - name: proxy-tls
+              port: 8043
+              protocol: TCP
+              containerPort: 8043
+            - name: management
+              port: 8090
+              protocol: TCP
+              containerPort: 8090
+          env:
+            - name: BACKEND_ENDPOINT_OVERRIDE
+              valueFrom:
+                configMapKeyRef:
+                  name: apicast-config
+                  key: BACKEND_ENDPOINT_OVERRIDE
+            - name: THREESCALE_CONFIG_FILE
+              valueFrom:
+                configMapKeyRef:
+                  name: apicast-config
+                  key: THREESCALE_CONFIG_FILE
+            - name: APICAST_HTTPS_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: apicast-config
+                  key: APICAST_HTTPS_PORT
+            - name: APICAST_LOG_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  name: apicast-config
+                  key: APICAST_LOG_LEVEL
+          volumeMounts:
+            - name: config-volume
+              mountPath: /gateway
+      volumes:
+        - name: config-volume
+          configMap:
+            name: apicast-config
+  replicas: 1
+  strategy:
+    type: "Rolling"
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: apicast-api-server
+  labels:
+    app: apicast-api-server
+spec:
+  terminationGracePeriodSeconds: 0
+  containers:
+  - name: server
+    image: hashicorp/http-echo
+    imagePullPolicy: IfNotPresent
+    args:
+    - -text="hello world"
+    - -listen=:8080
+    imagePullPolicy: IfNotPresent
+    ports:
+    - name: dns
+      port: 8080
+      containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: server-service
+spec:
+  selector:
+    app: apicast-api-server
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 8080

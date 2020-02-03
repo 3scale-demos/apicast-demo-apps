@@ -1,0 +1,16 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: client
+  labels:
+    app: client
+spec:
+  terminationGracePeriodSeconds: 0
+  containers:
+  - name: client
+    image: quay.io/3scale/grpc-utils:golang
+    imagePullPolicy: Always
+    command: [ "sleep" ]
+    args:
+    - "1000h"

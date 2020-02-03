@@ -1,0 +1,128 @@
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: grpc-config
+data:
+  grpc-service.crt: |-
+    -----BEGIN CERTIFICATE-----
+    MIID4DCCAsgCFBayjzVfDvx4X8huh8O/q+jQO/bRMA0GCSqGSIb3DQEBCwUAMEIx
+    CzAJBgNVBAYTAlhYMRUwEwYDVQQHDAxEZWZhdWx0IENpdHkxHDAaBgNVBAoME0Rl
+    ZmF1bHQgQ29tcGFueSBMdGQwHhcNMjAwMTMxMjEyNDQxWhcNMzAwMTI4MjEyNDQx
+    WjAXMRUwEwYDVQQDDAxncnBjLXNlcnZpY2UwggIiMA0GCSqGSIb3DQEBAQUAA4IC
+    DwAwggIKAoICAQDSR2JLnip+4EFA64ktDAjC2gHa5OBUz4jafIHgTX7LBrGaBAgr
+    vXn2l+S9gYQUsZLBDcwUAMJzlnEIW/j6TblC+k4JkYwD632S1slQoXWc6W/tt/hP
+    tRAk9iwr9NwNMgwyIsk2VqdsyNykRGt8zDYs/2zsfmpvKH6+oqFduPfilhb0B/3z
+    uiBkfijYl6FVuHCB5IxtakWxQ5mathTzgFYG9PguddOVdo9Xsa9cgq4wqQ0wk0/+
+    ccD1ritQdg7TC5BJdks1lovbGifSLhYakoDGlcSIYP6tdIOwRUZ8iDlhQWTpX3hH
+    MNzpsbqsgaLxSOHJvWGGTPGF6PmKp1M2DuFtVG4s4ZE74JxhgI6Aw9mNGaOgfG8r
+    fMdb1mIjkNggE/JZfAQ++w4+mzz58TMZPiHB/G3Ol88V1WWCHMpvKGQt5GMtRVam
+    d+rzpLzdlynXaJFF+QiRg406UoPYpyDFjgqIk9hXgjjK1eAuVm3u11+1rQXFm0sA
+    sSmyREWli2JAgu7vo46evM/2mkpjBKxOuyy3PV3hv31vOJFiJULgfptBIaWa7HAT
+    05ZCDsmqVxyUzO1HxQhXO70L4yQ6/H6ZF8wD2XnoKxbp+6Vy5e2McV9358Xv3Qox
+    NcFjK+GnvDtyGuuNY5tQOMUkFGMyroOnxA3dhQgNj08M606SraJR82Y27QIDAQAB
+    MA0GCSqGSIb3DQEBCwUAA4IBAQBpu269HrjcguxxksQvQILD3QRQ+SSKyLmobrAh
+    f2nLb3Bozc9DdbhJANySWtGR93qeg2NzckjgtYBPHCX3r7S6ei+8F6gSitG81SOV
+    6BhTFEB8tpzLs6k+do4GsszrXTHYrvoZv/o/R6x/kbTvPZR4ByqBnCPcSevu/4RJ
+    ucun+z1HDytkkDMYgsJ9XQkE9XLGoUM3h/G+oBddV5hmi9mGxSHw1qoDmt4CUQSu
+    VXwiKUShMAYeehEhve/uuxIBW0uF8I4XgsSKl2HQKLeXGKt6xTPy14wppBVsGvTK
+    gZUSpsj9QUVzGb3XFopEQ0iWU+7Bw3NdT3AWieHH2L8TJ+FI
+    -----END CERTIFICATE-----
+
+  grpc-service.key: |-
+    -----BEGIN PRIVATE KEY-----
+    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
+    Uy1z+FQTENOjAx7uaDVk3SkiqnSBQw==
+    -----END PRIVATE KEY-----
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: grpc-endpoint
+  labels:
+    app: grpc-endpoint
+spec:
+  terminationGracePeriodSeconds: 0
+  containers:
+  - name: server
+    image: quay.io/3scale/grpc-utils:golang
+    imagePullPolicy: Always
+    command: ["/go/bin/server"]
+    args:
+      - "--cert"
+      - "/certs/grpc-service.crt"
+      - "--key"
+      - "/certs/grpc-service.key"
+    ports:
+    - name: http
+      port: 8043
+      containerPort: 8043
+    volumeMounts:
+      - name: config-volume
+        mountPath: /certs
+  volumes:
+    - name: config-volume
+      configMap:
+        name: grpc-config
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grpc-service
+spec:
+  selector:
+    app: grpc-endpoint
+  ports:
+  - port: 443
+    protocol: TCP
+    targetPort: 8043
