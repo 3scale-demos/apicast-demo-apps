@@ -1,0 +1,24 @@
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  creationTimestamp: null
+  name: hey-cron
+spec:
+  concurrencyPolicy: Allow
+  jobTemplate:
+    metadata:
+      creationTimestamp: null
+    spec:
+      parallelism: 10
+      template:
+        metadata:
+          name: job-hey
+        spec:
+          containers:
+          - name: c
+            image: williamyeh/hey
+            command: ["/hey", "-z", "300s", "-c", "30", "http://apicast-service:8080/?user_key=123"]
+          restartPolicy: OnFailure
+  schedule: '*/10 * * * *'
+  concurrencyPolicy: Forbid
