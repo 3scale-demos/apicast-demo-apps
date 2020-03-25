@@ -1,0 +1,30 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: client
+  labels:
+    app: client
+    need: "yes"
+spec:
+  terminationGracePeriodSeconds: 0
+  containers:
+  - name: client
+    image: eloycoto/apicast:client
+    imagePullPolicy: IfNotPresent
+    command: [ "sleep" ]
+    args:
+    - "1000h"
+    volumeMounts:
+      - name: client-secrets
+        mountPath: /client_secrets/
+      - name: ca
+        mountPath: /ca/
+  volumes:
+    - name: client-secrets
+      secret:
+        secretName: endpoint-client-certs
+    - name: ca
+      configMap:
+        name: endpoint-ca
+
