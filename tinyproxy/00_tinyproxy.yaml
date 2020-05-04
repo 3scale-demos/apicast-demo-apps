@@ -1,0 +1,70 @@
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: tinyproxy-config
+data:
+  tinyproxy.conf: |-
+
+    User tinyproxy
+    Group tinyproxy
+    Port 8888
+    ConnectPort 4443
+    ConnectPort 443
+    Timeout 600
+    DefaultErrorFile "/usr/share/tinyproxy/default.html"
+    StatFile "/usr/share/tinyproxy/stats.html"
+    LogLevel info
+    MaxClients 100
+    MinSpareServers 5
+    MaxSpareServers 20
+    StartServers 10
+    MaxRequestsPerChild 0
+    ViaProxyName "tinyproxy"
+    DisableViaHeader Yes
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tinyproxy-service
+spec:
+  selector:
+    app: tinyproxy
+  ports:
+  - port: 8888
+    name: plaintext
+    protocol: TCP
+    targetPort: 8888
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: tinyproxy
+  labels:
+    app: tinyproxy
+    need: "yes"
+spec:
+  terminationGracePeriodSeconds: 0
+  containers:
+  - name: client
+    image: eloycoto/apicast:tinyproxy
+    imagePullPolicy: IfNotPresent
+    ports:
+      - name: proxy
+        port: 8888
+        protocol: TCP
+        containerPort: 8888
+    volumeMounts:
+      - name: ca
+        mountPath: /ca/
+      - name: config
+        mountPath: /etc/tinyproxy/
+  volumes:
+    - name: ca
+      configMap:
+        name: endpoint-ca
+    - name: config
+      configMap:
+        name: tinyproxy-config
+
+

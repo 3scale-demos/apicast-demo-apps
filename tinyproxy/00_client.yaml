@@ -1,0 +1,25 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: client
+  labels:
+    app: client
+    need: "yes"
+spec:
+  terminationGracePeriodSeconds: 0
+  containers:
+  - name: client
+    image: eloycoto/apicast:client
+    imagePullPolicy: IfNotPresent
+    command: [ "sleep" ]
+    args:
+    - "1000h"
+    volumeMounts:
+      - name: ca
+        mountPath: /ca/
+  volumes:
+    - name: ca
+      configMap:
+        name: endpoint-ca
+
