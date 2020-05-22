@@ -1,0 +1,89 @@
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  annotations:
+    service.beta.openshift.io/inject-cabundle: "true"
+  name: endpoint-ca
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: endpoint-config
+data:
+  TEST: one
+  nginx.conf: |-
+    worker_processes  1;
+    daemon off;
+    error_log /dev/stdout debug;
+
+    events {
+      worker_connections 1024;
+    }
+
+    http {
+      server {
+        listen 8043 ssl;
+
+        ssl_certificate /secrets/tls.crt;
+        ssl_certificate_key /secrets/tls.key;
+
+        location / {
+          return 200;
+        }
+      }
+    }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: endpoint-service
+  annotations:
+    service.beta.openshift.io/serving-cert-secret-name: endpoint-service
+spec:
+  selector:
+    app: endpoint
+  ports:
+  - port: 80
+    name: plain
+    protocol: TCP
+    targetPort: 8080
+  - port: 443
+    name: tls
+    protocol: TCP
+    targetPort: 8043
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: endpoint-nginx
+  labels:
+    app: endpoint
+    need: "yes"
+spec:
+  terminationGracePeriodSeconds: 0
+  containers:
+  - name: client
+    image: centos/nginx-116-centos7
+    imagePullPolicy: IfNotPresent
+    command: [ "/opt/rh/rh-nginx116/root/usr/sbin/nginx" ]
+    args:
+    - "-c"
+    - "/config/nginx.conf"
+    volumeMounts:
+      - name: secrets
+        mountPath: /secrets/
+      - name: config
+        mountPath: /config/
+      - name: ca
+        mountPath: /ca/
+  volumes:
+    - name: secrets
+      secret:
+        secretName: endpoint-service
+    - name: config
+      configMap:
+        name: endpoint-config
+    - name: ca
+      configMap:
+        name: endpoint-ca
