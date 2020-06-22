@@ -1,0 +1,158 @@
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: apicast-config
+data:
+  BACKEND_ENDPOINT_OVERRIDE: http://server-service/
+  APICAST_HTTPS_PORT: "8043"
+  APICAST_LOG_LEVEL: "info"
+  THREESCALE_CONFIG_FILE: /gateway/test.json
+  test.json: |-
+    {
+      "services": [
+        {
+          "id": 200,
+          "backend_version":  1,
+          "backend_authentication_type": "service_token",
+          "backend_authentication_value": "token-value",
+          "proxy": {
+            "hosts": [
+              "one",
+              "apicast-service"
+            ],
+            "api_backend": "https://httpbin.org",
+            "proxy_rules": [
+              {
+                "pattern": "/",
+                "http_method": "GET",
+                "metric_system_name": "hits",
+                "delta": 1
+              }
+            ],
+            "policy_chain": [
+              {
+                "name": "apicast.policy.apicast"
+              },
+              {
+                "name": "apicast.policy.http_proxy",
+                "configuration": {
+                  "all_proxy": "http://camel-proxy:8443"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: apicast-service
+spec:
+  selector:
+    app: apicast
+  ports:
+  - port: 8080
+    protocol: TCP
+    name: plain
+    targetPort: 8080
+  - port: 8043
+    protocol: TCP
+    name: tls
+    targetPort: 8043
+---
+kind: "DeploymentConfig"
+apiVersion: "v1"
+metadata:
+  name: "apicast"
+spec:
+  template:
+    metadata:
+      labels:
+        name: "apicast"
+        app: apicast
+    spec:
+      terminationGracePeriodSeconds: 0
+      containers:
+        - name: gateway
+          image: eloycoto/apicast:CAMEL_TLS
+          imagePullPolicy: Always
+          ports:
+            - name: proxy
+              port: 8080
+              protocol: TCP
+              containerPort: 8080
+            - name: tls
+              port: 8043
+              protocol: TCP
+              containerPort: 8043
+            - name: management
+              port: 8090
+              protocol: TCP
+              containerPort: 8090
+          env:
+            - name: BACKEND_ENDPOINT_OVERRIDE
+              valueFrom:
+                configMapKeyRef:
+                  name: apicast-config
+                  key: BACKEND_ENDPOINT_OVERRIDE
+            - name: THREESCALE_CONFIG_FILE
+              valueFrom:
+                configMapKeyRef:
+                  name: apicast-config
+                  key: THREESCALE_CONFIG_FILE
+            - name: THREESCALE_CONFIG_FILE
+              valueFrom:
+                configMapKeyRef:
+                  name: apicast-config
+                  key: THREESCALE_CONFIG_FILE
+            - name: APICAST_HTTPS_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: apicast-config
+                  key: APICAST_HTTPS_PORT
+          volumeMounts:
+            - name: config-volume
+              mountPath: /gateway
+      volumes:
+        - name: config-volume
+          configMap:
+            name: apicast-config
+  replicas: 1
+  strategy:
+    type: "Rolling"
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: apicast-api-server
+  labels:
+    app: apicast-api-server
+spec:
+  terminationGracePeriodSeconds: 0
+  containers:
+  - name: server
+    image: hashicorp/http-echo
+    imagePullPolicy: IfNotPresent
+    args:
+    - -text="hello world"
+    - -listen=:8080
+    imagePullPolicy: IfNotPresent
+    ports:
+    - name: dns
+      port: 8080
+      containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: server-service
+spec:
+  selector:
+    app: apicast-api-server
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 8080
