@@ -1,0 +1,82 @@
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: nginx-config
+data:
+  nginx.conf: |-
+    worker_processes 1;
+    master_process on;
+    daemon off;
+    error_log /dev/stdout debug;
+
+    events {
+      worker_connections 1024;
+    }
+
+    http {
+      server {
+        access_log /dev/stdout;
+        listen 8080;
+
+        location / {
+              proxy_pass http://api-endpoint;
+        }
+      }
+    }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+spec:
+  selector:
+    app: nginx
+  ports:
+  - port: 8080
+    name: plaintext
+    protocol: TCP
+    targetPort: 8080
+---
+kind: "DeploymentConfig"
+apiVersion: "v1"
+metadata:
+  name: "nginx"
+spec:
+  template:
+    metadata:
+      labels:
+        name: "nginx"
+        app: nginx
+    spec:
+      terminationGracePeriodSeconds: 0
+      containers:
+        - name: gateway
+          resources:
+            limits:
+              memory: 30Mi
+            requests:
+              memory: 20Mi
+          image: eloycoto/nginx:latest
+          imagePullPolicy: Always
+          ports:
+            - name: proxy
+              port: 8080
+              protocol: TCP
+              containerPort: 8080
+          volumeMounts:
+            - name: config-volume
+              mountPath: /gateway
+          command: [ "/nginx/objs/nginx" ]
+          args:
+          - "-c"
+          - "/gateway/nginx.conf"
+          - "-p"
+          - "/var/run/nginx/"
+      volumes:
+        - name: config-volume
+          configMap:
+            name: nginx-config
+  replicas: 2
+  strategy:
+    type: "Rolling"
