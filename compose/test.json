@@ -1,0 +1,40 @@
+{
+  "services": [
+    {
+      "id": 200,
+      "backend_version": 1,
+      "backend_authentication_type": "service_token",
+      "backend_authentication_value": "token-value",
+      "proxy": {
+        "hosts": [
+          "one",
+          "apicast-service"
+        ],
+        "api_backend": "https://echo-api.3scale.net",
+        "proxy_rules": [
+          {
+            "pattern": "/",
+            "http_method": "GET",
+            "metric_system_name": "hits",
+            "delta": 1
+          }
+        ],
+        "policy_chain": [
+          {
+            "name": "apicast.policy.upstream",
+            "configuration":
+              {
+                "rules": [
+                  { "regex": "/", "url": "https://echo-api.3scale.net" },
+                  { "regex": "/headers", "url": "http://httpbin.org" }
+                ]
+              }
+          },
+          {
+            "name": "apicast.policy.apicast"
+          }
+        ]
+      }
+    }
+  ]
+}

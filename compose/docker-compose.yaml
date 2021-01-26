@@ -1,0 +1,15 @@
+version: '2'
+services:
+  proxy:
+    image: quay.io/3scale/apicast:master
+    volumes:
+      - .:/config
+    expose:
+      - "8080"
+    # ports:
+    #   - "8080:8080"
+    environment:
+      BACKEND_ENDPOINT_OVERRIDE: http://localhost:8081/
+      THREESCALE_CONFIG_FILE: /config/test.json
+networks:
+  envoymesh: {}
