@@ -1,0 +1,32 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: client
+  labels:
+    app: client
+spec:
+  terminationGracePeriodSeconds: 0
+  containers:
+  - name: client
+    image: docker.io/curlimages/curl
+    imagePullPolicy: IfNotPresent
+    command: [ "sleep" ]
+    args:
+    - "1000h"
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ncat
+  labels:
+    app: ncat
+spec:
+  terminationGracePeriodSeconds: 0
+  containers:
+  - name: client
+    image: docker.io/itsthenetwork/alpine-ncat
+    imagePullPolicy: IfNotPresent
+    command: [ "sleep" ]
+    args:
+    - "1000h"

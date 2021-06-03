@@ -1,0 +1,156 @@
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: apicast-config
+data:
+  BACKEND_ENDPOINT_OVERRIDE: http://server-service/
+  APICAST_HTTPS_PORT: "8043"
+  APICAST_LOG_LEVEL: "info"
+  THREESCALE_CONFIG_FILE: /gateway/test.json
+  test.json: |-
+    {
+      "services": [
+        {
+          "id": 200,
+          "backend_version":  1,
+          "backend_authentication_type": "service_token",
+          "backend_authentication_value": "token-value",
+          "proxy": {
+            "hosts": [
+              "one",
+              "example-eloy-performance.apps.dev-eng-ocp4-5.dev.3sca.net",
+              "apicast-service"
+            ],
+            "api_backend": "https://httpbin.org",
+            "proxy_rules": [
+              {
+                "pattern": "/",
+                "http_method": "GET",
+                "metric_system_name": "hits",
+                "delta": 1
+              }
+            ],
+            "policy_chain": [
+              {
+                "name": "apicast.policy.tls",
+                "configuration": {
+                  "certificates": [
+                    {
+                      "certificate_path": "/certs/tls.crt",
+                      "certificate_key_path": "/certs/tls.key"
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "apicast.policy.apicast"
+              }
+            ]
+          }
+        }
+      ]
+    }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: apicast-service
+  annotations:
+    service.beta.openshift.io/serving-cert-secret-name: apicast-service
+spec:
+  selector:
+    app: apicast
+  ports:
+  - port: 8080
+    protocol: TCP
+    name: plain
+    targetPort: 8080
+  - port: 8043
+    protocol: TCP
+    name: tls
+    targetPort: 8043
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: apicast
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: apicast
+  template:
+    metadata:
+      labels:
+        name: "apicast"
+        app: apicast
+    spec:
+      terminationGracePeriodSeconds: 0
+      containers:
+        - name: gateway
+          image: eloycoto/apicast:master
+          imagePullPolicy: Always
+          env:
+            - name: BACKEND_ENDPOINT_OVERRIDE
+              valueFrom:
+                configMapKeyRef:
+                  name: apicast-config
+                  key: BACKEND_ENDPOINT_OVERRIDE
+            - name: THREESCALE_CONFIG_FILE
+              valueFrom:
+                configMapKeyRef:
+                  name: apicast-config
+                  key: THREESCALE_CONFIG_FILE
+            - name: THREESCALE_CONFIG_FILE
+              valueFrom:
+                configMapKeyRef:
+                  name: apicast-config
+                  key: THREESCALE_CONFIG_FILE
+            - name: APICAST_HTTPS_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: apicast-config
+                  key: APICAST_HTTPS_PORT
+          volumeMounts:
+            - name: config-volume
+              mountPath: /gateway
+            - name: certs
+              mountPath: /certs
+      volumes:
+        - name: config-volume
+          configMap:
+            name: apicast-config
+        - name: certs
+          secret:
+            secretName: apicast-service
+  replicas: 1
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: apicast-api-server
+  labels:
+    app: apicast-api-server
+spec:
+  terminationGracePeriodSeconds: 0
+  containers:
+  - name: server
+    image: hashicorp/http-echo
+    imagePullPolicy: IfNotPresent
+    args:
+    - -text="hello world"
+    - -listen=:8080
+    imagePullPolicy: IfNotPresent
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: server-service
+spec:
+  selector:
+    app: apicast-api-server
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 8080

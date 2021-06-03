@@ -1,0 +1,65 @@
+apiVersion: v1
+items:
+- apiVersion: route.openshift.io/v1
+  kind: Route
+  metadata:
+    annotations:
+      openshift.io/host.generated: "true"
+    creationTimestamp: "2021-06-03T09:39:59Z"
+    managedFields:
+    - apiVersion: route.openshift.io/v1
+      fieldsType: FieldsV1
+      fieldsV1:
+        f:spec:
+          f:port:
+            .: {}
+            f:targetPort: {}
+          f:tls:
+            .: {}
+            f:termination: {}
+          f:to:
+            f:kind: {}
+            f:name: {}
+            f:weight: {}
+          f:wildcardPolicy: {}
+      manager: Mozilla
+      operation: Update
+      time: "2021-06-03T09:39:59Z"
+    - apiVersion: route.openshift.io/v1
+      fieldsType: FieldsV1
+      fieldsV1:
+        f:status:
+          f:ingress: {}
+      manager: openshift-router
+      operation: Update
+      time: "2021-06-03T09:39:59Z"
+    name: example
+    namespace: eloy-performance
+    resourceVersion: "266604492"
+    selfLink: /apis/route.openshift.io/v1/namespaces/eloy-performance/routes/example
+    uid: 24010e9d-0e44-44b3-9a8f-3826c99df3fb
+  spec:
+    host: example-eloy-performance.apps.dev-eng-ocp4-5.dev.3sca.net
+    port:
+      targetPort: tls
+    tls:
+      termination: passthrough
+    to:
+      kind: Service
+      name: apicast-service
+      weight: 100
+    wildcardPolicy: None
+  status:
+    ingress:
+    - conditions:
+      - lastTransitionTime: "2021-06-03T09:39:59Z"
+        status: "True"
+        type: Admitted
+      host: example-eloy-performance.apps.dev-eng-ocp4-5.dev.3sca.net
+      routerCanonicalHostname: apps.dev-eng-ocp4-5.dev.3sca.net
+      routerName: default
+      wildcardPolicy: None
+kind: List
+metadata:
+  resourceVersion: ""
+  selfLink: ""
