@@ -89,7 +89,7 @@ spec:
       terminationGracePeriodSeconds: 0
       containers:
         - name: gateway
-          image: eloycoto/apicast:master
+          image: quay.io/3scale/apicast:master-builder
           imagePullPolicy: Always
           env:
             - name: BACKEND_ENDPOINT_OVERRIDE
