@@ -1,0 +1,48 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: client
+  labels:
+    app: client
+spec:
+  terminationGracePeriodSeconds: 0
+  containers:
+  - name: client
+    image: docker.io/cilium/demo-client
+    imagePullPolicy: IfNotPresent
+    command: [ "sleep" ]
+    args:
+    - "1000h"
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: wrkclient
+  labels:
+    app: client
+spec:
+  terminationGracePeriodSeconds: 0
+  containers:
+  - name: client
+    image: williamyeh/wrk
+    imagePullPolicy: IfNotPresent
+    command: [ "sleep" ]
+    args:
+    - "1000h"
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: heyclient
+  labels:
+    app: client
+spec:
+  terminationGracePeriodSeconds: 0
+  containers:
+  - name: client
+    image: eloycoto/apicast:hey_client
+    imagePullPolicy: Always
+    command: [ "sleep" ]
+    args:
+    - "1000h"

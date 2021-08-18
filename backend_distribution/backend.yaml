@@ -1,0 +1,101 @@
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: backend-config
+data:
+  BACKEND_ENDPOINT_OVERRIDE: http://localhost:8081/
+  APICAST_LOG_LEVEL: "info"
+  THREESCALE_CONFIG_FILE: /gateway/test.json
+  test.json: |-
+    {
+      "services": [
+        {
+          "id": 200,
+          "backend_version":  1,
+          "backend_authentication_type": "service_token",
+          "backend_authentication_value": "token-value",
+          "proxy": {
+            "hosts": [
+              "backend-service"
+            ],
+            "api_backend": "https://httpbin.org",
+            "proxy_rules": [
+              {
+                "pattern": "/",
+                "http_method": "GET",
+                "metric_system_name": "hits",
+                "delta": 1
+              },
+              {
+                "pattern": "/",
+                "http_method": "POST",
+                "metric_system_name": "hits",
+                "delta": 1
+              }
+            ],
+            "policy_chain": [
+              {
+                "name": "apicast.policy.echo"
+              }
+            ]
+          }
+        }
+      ]
+    }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+spec:
+  selector:
+    app: backend
+  ports:
+  - port: 8080
+    protocol: TCP
+    name: plain
+    targetPort: 8080
+  - port: 9421
+    protocol: TCP
+    name: metrics
+    targetPort: 9421
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: backend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        name: "backend"
+        app: backend
+    spec:
+      terminationGracePeriodSeconds: 0
+      containers:
+        - name: gateway
+          image: quay.io/3scale/apicast:latest
+          imagePullPolicy: Always
+          env:
+            - name: BACKEND_ENDPOINT_OVERRIDE
+              valueFrom:
+                configMapKeyRef:
+                  name: backend-config
+                  key: BACKEND_ENDPOINT_OVERRIDE
+            - name: THREESCALE_CONFIG_FILE
+              valueFrom:
+                configMapKeyRef:
+                  name: backend-config
+                  key: THREESCALE_CONFIG_FILE
+          volumeMounts:
+            - name: config-volume
+              mountPath: /gateway
+      volumes:
+        - name: config-volume
+          configMap:
+            name: backend-config
